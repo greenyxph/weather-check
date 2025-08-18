@@ -1,0 +1,28 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <title>Weather</title>
+  <style>
+    body { font-family: Arial; padding: 20px; background: #f0f8ff; }
+    .weather-box { border: 1px solid #ccc; padding: 15px; border-radius: 8px; background: #fff; }
+  </style>
+</head>
+<body>
+  <div class="weather-box" id="weather"></div>
+
+  <script>
+    fetch("https://api.openweathermap.org/data/2.5/weather?q=San%20Jose%20del%20Monte&appid=b628f02897fc7f24a3175118197ab994&units=metric")
+      .then(response => response.json())
+      .then(data => {
+        const weatherHTML = `
+          <h2>🌤️ Weather in ${data.name}</h2>
+          <p><strong>Temperature:</strong> ${data.main.temp} °C (Feels like ${data.main.feels_like} °C)</p>
+          <p><strong>Humidity:</strong> ${data.main.humidity}%</p>
+          <p><strong>Wind:</strong> ${data.wind.speed} m/s from ${data.wind.deg}°</p>
+          <p><strong>Clouds:</strong> ${data.clouds.all}% (${data.weather[0].description})</p>
+        `;
+        document.getElementById("weather").innerHTML = weatherHTML;
+      });
+  </script>
+</body>
+</html>
