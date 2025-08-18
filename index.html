@@ -2,23 +2,22 @@
 <html lang="en">
 <head>
   <meta charset="UTF-8">
-  <title>GREENYX Weather</title>
+  <title>GREENYX Weather Dashboard</title>
   <style>
-    body { font-family: Arial, sans-serif; margin: 10px; background: #f0f8ff; font-size: 14px; }
-    h2 { margin: 10px 0 5px; font-size: 16px; }
-    .section { margin-bottom: 15px; }
-    .timestamp { font-size: 12px; color: #555; margin-bottom: 5px; }
-    .compact p { margin: 3px 0; line-height: 1.3; }
-    .forecast-row { display: flex; align-items: center; gap: 8px; margin: 4px 0; }
-    .forecast-row img.icon { height: 30px; }
-    .forecast-row span { display: inline-block; min-width: 60px; }
+    body { font-family: Arial, sans-serif; padding: 20px; background: #f0f8ff; font-size: 14px; }
+    h1 { color: #2c3e50; }
+    .section { margin-bottom: 30px; }
+    p { margin: 5px 0; line-height: 1.4; }
+    .timestamp { font-size: 12px; color: #555; margin-bottom: 10px; }
+    img.icon { vertical-align: middle; height: 30px; }
   </style>
 </head>
 <body>
-  <div class="timestamp" id="last-updated"></div>
-  <div class="section compact" id="location-info"></div>
-  <div class="section compact" id="current-weather"></div>
-  <div class="section compact" id="forecast"></div>
+  <h1>🌾 Weather Dashboard</h1>
+  <p class="timestamp" id="last-updated"></p>
+  <div class="section" id="location-info"></div>
+  <div class="section" id="current-weather"></div>
+  <div class="section" id="forecast"></div>
 
   <script>
     const apiKey = 'b628f02897fc7f24a3175118197ab994';
@@ -27,41 +26,49 @@
     document.getElementById('last-updated').textContent = `Last updated: ${updateTime}`;
 
     function getWeather(lat, lon, label = 'Your Location') {
-      document.getElementById('location-info').innerHTML = `<p>📍 <strong>${label}</strong></p>`;
+      document.getElementById('location-info').innerHTML = `<p>📍 Showing weather for: <strong>${label}</strong></p>`;
 
+      // 🌡️ Current Weather
       fetch(`https://api.openweathermap.org/data/2.5/weather?lat=${lat}&lon=${lon}&appid=${apiKey}&units=metric`)
         .then(res => res.json())
         .then(data => {
           const w = data.weather?.[0] || {};
           const icon = `https://openweathermap.org/img/wn/${w.icon}@2x.png`;
-          document.getElementById('current-weather').innerHTML = `
-            <h2>🌡️ Now</h2>
+          const currentHTML = `
+            <h2>🌡️ Current Conditions</h2>
             <p><img class="icon" src="${icon}" alt="${w.description}"> ${w.description}</p>
-            <p>Temp: ${data.main.temp} °C (Feels like ${data.main.feels_like} °C)</p>
-            <p>Humidity: ${data.main.humidity}% | Wind: ${data.wind.speed} m/s</p>
-            <p>Clouds: ${data.clouds.all}% | Pressure: ${data.main.pressure} hPa</p>
+            <p>🌡️ Temperature: ${data.main.temp} °C (Feels like ${data.main.feels_like} °C)</p>
+            <p>🌡️ Min/Max: ${data.main.temp_min} °C / ${data.main.temp_max} °C</p>
+            <p>💧 Humidity: ${data.main.humidity}%</p>
+            <p>💨 Wind: ${data.wind.speed} m/s from ${data.wind.deg}°</p>
+            <p>☁️ Clouds: ${data.clouds.all}%</p>
+            <p>🔭 Visibility: ${data.visibility} meters</p>
+            <p>📈 Pressure: ${data.main.pressure} hPa</p>
+            <p>🌅 Sunrise: ${new Date(data.sys.sunrise * 1000).toLocaleTimeString()}</p>
+            <p>🌇 Sunset: ${new Date(data.sys.sunset * 1000).toLocaleTimeString()}</p>
           `;
+          document.getElementById('current-weather').innerHTML = currentHTML;
         });
 
+      // 📅 Forecast (Next 12 hours, 4 entries)
       fetch(`https://api.openweathermap.org/data/2.5/forecast?lat=${lat}&lon=${lon}&appid=${apiKey}&units=metric`)
         .then(res => res.json())
         .then(data => {
           const forecastHTML = data.list.slice(0, 4).map(item => {
-            const time = new Date(item.dt * 1000).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' });
+            const time = new Date(item.dt * 1000).toLocaleString();
             const w = item.weather?.[0] || {};
             const icon = `https://openweathermap.org/img/wn/${w.icon}@2x.png`;
             const rain = item.rain?.['3h'] || 0;
             return `
-              <div class="forecast-row">
-                <span><strong>${time}</strong></span>
-                <img class="icon" src="${icon}" alt="${w.description}">
-                <span>${w.description}</span>
-                <span>${item.main.temp} °C</span>
-                <span>🌧️ ${rain} mm</span>
-              </div>
+              <p><strong>${time}</strong></p>
+              <p><img class="icon" src="${icon}" alt="${w.description}"> ${w.description}</p>
+              <p>🌡️ Temp: ${item.main.temp} °C</p>
+              <p>🌧️ Rain: ${rain} mm</p>
+              <p>💨 Wind: ${item.wind.speed} m/s</p>
+              <hr>
             `;
           }).join('');
-          document.getElementById('forecast').innerHTML = `<h2>📅 Next Hours</h2>${forecastHTML}`;
+          document.getElementById('forecast').innerHTML = `<h2>📅 Upcoming Forecast</h2>${forecastHTML}`;
         });
     }
 
