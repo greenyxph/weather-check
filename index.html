@@ -8,10 +8,13 @@
     h1 { color: #2c3e50; }
     .section { margin-bottom: 30px; }
     p { margin: 5px 0; }
+    .timestamp { font-size: 0.9em; color: #555; }
+    img.icon { vertical-align: middle; }
   </style>
 </head>
 <body>
   <h1>🌾 Weather in San Jose del Monte</h1>
+  <p class="timestamp" id="last-updated"></p>
 
   <div class="section" id="current-weather"></div>
   <div class="section" id="forecast"></div>
@@ -20,37 +23,54 @@
     const apiKey = 'b628f02897fc7f24a3175118197ab994';
     const city = 'San Jose del Monte';
 
+    // ⏱️ Timestamp
+    const updateTime = new Date().toLocaleString();
+    document.getElementById('last-updated').textContent = `Last updated: ${updateTime}`;
+
     // 🌡️ Current Weather
     fetch(`https://api.openweathermap.org/data/2.5/weather?q=${city}&appid=${apiKey}&units=metric`)
       .then(response => response.json())
       .then(data => {
-        const weatherDesc = data.weather?.[0]?.description || 'N/A';
+        const weather = data.weather?.[0] || {};
+        const iconURL = `https://openweathermap.org/img/wn/${weather.icon}@2x.png`;
         const currentHTML = `
           <h2>🌡️ Current Conditions</h2>
+          <p><img class="icon" src="${iconURL}" alt="${weather.description}"> ${weather.description}</p>
           <p>Temperature: ${data.main.temp} °C (Feels like ${data.main.feels_like} °C)</p>
+          <p>Min/Max: ${data.main.temp_min} °C / ${data.main.temp_max} °C</p>
           <p>Humidity: ${data.main.humidity}%</p>
-          <p>Wind: ${data.wind.speed} m/s from ${data.wind.deg}°</p>
-          <p>Clouds: ${data.clouds.all}% (${weatherDesc})</p>
-          <p>Visibility: ${data.visibility} meters</p>
           <p>Pressure: ${data.main.pressure} hPa</p>
+          <p>Wind: ${data.wind.speed} m/s from ${data.wind.deg}°</p>
+          <p>Clouds: ${data.clouds.all}%</p>
+          <p>Visibility: ${data.visibility} meters</p>
           <p>Sunrise: ${new Date(data.sys.sunrise * 1000).toLocaleTimeString()}</p>
           <p>Sunset: ${new Date(data.sys.sunset * 1000).toLocaleTimeString()}</p>
         `;
         document.getElementById('current-weather').innerHTML = currentHTML;
       });
 
-    // 📅 5-Day Forecast (3-hour intervals)
+    // 📅 5-Day Forecast (Next 24 hours, 3-hour intervals)
     fetch(`https://api.openweathermap.org/data/2.5/forecast?q=${city}&appid=${apiKey}&units=metric`)
       .then(response => response.json())
       .then(data => {
         const forecastHTML = data.list.slice(0, 8).map(item => {
           const dateTime = new Date(item.dt * 1000).toLocaleString();
-          const desc = item.weather?.[0]?.description || 'N/A';
+          const weather = item.weather?.[0] || {};
+          const iconURL = `https://openweathermap.org/img/wn/${weather.icon}@2x.png`;
           const rain = item.rain?.['3h'] || 0;
-          return `<p><strong>${dateTime}</strong>: ${desc}, 🌧️ Rain: ${rain} mm, 🌡️ ${item.main.temp} °C</p>`;
+          return `
+            <p>
+              <strong>${dateTime}</strong><br>
+              <img class="icon" src="${iconURL}" alt="${weather.description}"> ${weather.description}<br>
+              🌡️ Temp: ${item.main.temp} °C | 💧 Rain: ${rain} mm | 💨 Wind: ${item.wind.speed} m/s
+            </p>
+          `;
         }).join('');
         document.getElementById('forecast').innerHTML = `<h2>📅 Upcoming Forecast</h2>${forecastHTML}`;
       });
+
+    // 🔁 Auto-refresh every 10 minutes
+    setInterval(() => location.reload(), 600000);
   </script>
 </body>
 </html>
