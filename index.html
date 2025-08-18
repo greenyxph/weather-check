@@ -3,23 +3,38 @@
 <head>
   <title>Weather</title>
   <style>
-    body { font-family: Arial; padding: 20px; background: #f0f8ff; }
-    .weather-box { border: 1px solid #ccc; padding: 15px; border-radius: 8px; background: #fff; }
+    body { font-family: Arial, sans-serif; padding: 20px; background: #f0f8ff; }
+    .weather-box { border: 1px solid #ccc; padding: 15px; border-radius: 8px; background: #fff; max-width: 400px; }
   </style>
 </head>
 <body>
-  <div class="weather-box" id="weather"></div>
+  <div class="weather-box" id="weather">Loading...</div>
 
   <script>
-    fetch("https://api.openweathermap.org/data/2.5/weather?q=San%20Jose%20del%20Monte&appid=b628f02897fc7f24a3175118197ab994&units=metric")
+    function getWindDirection(deg) {
+      const directions = ['North', 'NE', 'East', 'SE', 'South', 'SW', 'West', 'NW'];
+      return directions[Math.round(deg / 45) % 8];
+    }
+
+    function formatTime(timestamp) {
+      const date = new Date(timestamp * 1000);
+      return date.toLocaleTimeString('en-PH', { hour: '2-digit', minute: '2-digit' });
+    }
+
+    fetch("https://api.openweathermap.org/data/2.5/weather?q=Manila,PH&appid=b628f02897fc7f24a3175118197ab994&units=metric")
       .then(response => response.json())
       .then(data => {
         const weatherHTML = `
-          <h2>🌤️ Weather in ${data.name}</h2>
-          <p><strong>Temperature:</strong> ${data.main.temp} °C (Feels like ${data.main.feels_like} °C)</p>
+          <h2>🌥️ Weather Update – ${data.name}, ${data.sys.country}</h2>
+          <p><strong>Temperature:</strong> ${data.main.temp} °C</p>
+          <p><strong>Feels Like:</strong> ${data.main.feels_like} °C</p>
           <p><strong>Humidity:</strong> ${data.main.humidity}%</p>
-          <p><strong>Wind:</strong> ${data.wind.speed} m/s from ${data.wind.deg}°</p>
-          <p><strong>Clouds:</strong> ${data.clouds.all}% (${data.weather[0].description})</p>
+          <p><strong>Wind:</strong> ${data.wind.speed} m/s from ${getWindDirection(data.wind.deg)}</p>
+          <p><strong>Cloud Cover:</strong> ${data.clouds.all}% (${data.weather[0].description})</p>
+          <p><strong>Visibility:</strong> ${data.visibility / 1000} km</p>
+          <p><strong>Pressure:</strong> ${data.main.pressure} hPa</p>
+          <p><strong>Sunrise:</strong> ${formatTime(data.sys.sunrise)}</p>
+          <p><strong>Sunset:</strong> ${formatTime(data.sys.sunset)}</p>
         `;
         document.getElementById("weather").innerHTML = weatherHTML;
       });
