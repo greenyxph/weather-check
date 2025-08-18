@@ -8,10 +8,11 @@
     h1 { color: #2c3e50; margin-bottom: 5px; }
     .section { margin-bottom: 20px; }
     .timestamp { font-size: 12px; color: #555; margin-bottom: 10px; }
-    .forecast-block { margin-bottom: 12px; }
-    .weather-header { display: flex; align-items: center; gap: 10px; margin-bottom: 5px; }
-    .weather-header img.icon { height: 50px; }
-    .weather-details { display: flex; gap: 15px; flex-wrap: wrap; font-size: 14px; }
+    .forecast-block { display: flex; justify-content: space-between; align-items: center; margin-bottom: 12px; padding: 6px 0; border-bottom: 1px solid #ccc; }
+    .left { display: flex; align-items: center; gap: 10px; }
+    .left img.icon { height: 50px; }
+    .right { display: flex; gap: 15px; flex-wrap: wrap; text-align: right; }
+    .right span { white-space: nowrap; }
   </style>
 </head>
 <body>
@@ -38,13 +39,12 @@
           const icon = `https://openweathermap.org/img/wn/${w.icon}@2x.png`;
           const currentHTML = `
             <div class="forecast-block">
-              <div class="weather-header">
+              <div class="left">
                 <img class="icon" src="${icon}" alt="${w.description}">
                 <strong>${w.description}</strong>
               </div>
-              <div class="weather-details">
+              <div class="right">
                 <span>🌡️ Temp: ${data.main.temp} °C</span>
-                <span>💧 Humidity: ${data.main.humidity}%</span>
                 <span>💨 Wind: ${data.wind.speed} m/s</span>
                 <span>☁️ Clouds: ${data.clouds.all}%</span>
               </div>
@@ -64,11 +64,11 @@
             const rain = item.rain?.['3h'] || 0;
             return `
               <div class="forecast-block">
-                <div class="weather-header">
+                <div class="left">
                   <img class="icon" src="${icon}" alt="${w.description}">
                   <strong>${time} – ${w.description}</strong>
                 </div>
-                <div class="weather-details">
+                <div class="right">
                   <span>🌡️ Temp: ${item.main.temp} °C</span>
                   <span>🌧️ Rain: ${rain} mm</span>
                   <span>💨 Wind: ${item.wind.speed} m/s</span>
