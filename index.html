@@ -35,7 +35,7 @@
         .then(res => res.json())
         .then(data => {
           const w = data.weather?.[0] || {};
-          const icon = `https://openweathermap.org/img/wn/${w.icon}@4x.png`; // Larger icon
+          const icon = `https://openweathermap.org/img/wn/${w.icon}@4x.png`;
           const currentHTML = `
             <div class="forecast-block">
               <div class="weather-header">
@@ -53,30 +53,63 @@
           document.getElementById('current-weather').innerHTML = currentHTML;
         });
 
-      // 📅 Forecast (Next 12 hours, 4 entries)
+      // 📅 Forecast (Next 5 Days)
       fetch(`https://api.openweathermap.org/data/2.5/forecast?lat=${lat}&lon=${lon}&appid=${apiKey}&units=metric`)
         .then(res => res.json())
         .then(data => {
-          const forecastHTML = data.list.slice(0, 4).map(item => {
-            const time = new Date(item.dt * 1000).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' });
-            const w = item.weather?.[0] || {};
-            const icon = `https://openweathermap.org/img/wn/${w.icon}@4x.png`; // Larger icon
-            const rain = item.rain?.['3h'] || 0;
+          const dailyData = {};
+
+          data.list.forEach(item => {
+            const date = new Date(item.dt * 1000);
+            const day = date.toLocaleDateString(undefined, { weekday: 'short', month: 'short', day: 'numeric' });
+
+            if (!dailyData[day]) {
+              dailyData[day] = {
+                temps: [],
+                winds: [],
+                rains: [],
+                icons: [],
+                descriptions: [],
+                middayIcon: null
+              };
+            }
+
+            dailyData[day].temps.push(item.main.temp);
+            dailyData[day].winds.push(item.wind.speed);
+            dailyData[day].rains.push(item.rain?.['3h'] || 0);
+            dailyData[day].icons.push(item.weather?.[0]?.icon);
+            dailyData[day].descriptions.push(item.weather?.[0]?.description);
+
+            const hour = date.getHours();
+            if (hour === 12) {
+              dailyData[day].middayIcon = item.weather?.[0]?.icon;
+            }
+          });
+
+          const forecastHTML = Object.entries(dailyData).slice(0, 5).map(([day, values]) => {
+            const avgTemp = (values.temps.reduce((a, b) => a + b, 0) / values.temps.length).toFixed(1);
+            const avgWind = (values.winds.reduce((a, b) => a + b, 0) / values.winds.length).toFixed(1);
+            const totalRain = values.rains.reduce((a, b) => a + b, 0).toFixed(1);
+            const iconCode = values.middayIcon || values.icons[0];
+            const iconURL = `https://openweathermap.org/img/wn/${iconCode}@4x.png`;
+            const description = values.descriptions[Math.floor(values.descriptions.length / 2)];
+
             return `
               <div class="forecast-block">
                 <div class="weather-header">
-                  <img class="icon" src="${icon}" alt="${w.description}">
-                  <strong>${time} – ${w.description}</strong>
+                  <img class="icon" src="${iconURL}" alt="${description}">
+                  <strong>${day} – ${description}</strong>
                 </div>
                 <div class="weather-details">
-                  <span>🌡️ Temp: ${item.main.temp} °C</span>
-                  <span>🌧️ Rain: ${rain} mm</span>
-                  <span>💨 Wind: ${item.wind.speed} m/s</span>
+                  <span>🌡️ Avg Temp: ${avgTemp} °C</span>
+                  <span>🌧️ Total Rain: ${totalRain} mm</span>
+                  <span>💨 Avg Wind: ${avgWind} m/s</span>
                 </div>
               </div>
             `;
           }).join('');
-          document.getElementById('forecast').innerHTML = `<h2>📅 Upcoming Forecast</h2>${forecastHTML}`;
+
+          document.getElementById('forecast').innerHTML = `<h2>📅 5-Day Forecast</h2>${forecastHTML}`;
         });
     }
 
