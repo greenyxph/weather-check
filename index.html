@@ -1,42 +1,55 @@
 <!DOCTYPE html>
-<html>
+<html lang="en">
 <head>
-  <title>Weather</title>
+  <meta charset="UTF-8">
+  <title>GREENYX Weather Dashboard</title>
   <style>
     body { font-family: Arial, sans-serif; padding: 20px; background: #f0f8ff; }
-    .weather-box { border: 1px solid #ccc; padding: 15px; border-radius: 8px; background: #fff; max-width: 400px; }
+    h1 { color: #2c3e50; }
+    .section { margin-bottom: 30px; }
+    p { margin: 5px 0; }
   </style>
 </head>
 <body>
-  <div class="weather-box" id="weather">Loading...</div>
+  <h1>🌾 Weather in San Jose del Monte</h1>
+
+  <div class="section" id="current-weather"></div>
+  <div class="section" id="forecast"></div>
 
   <script>
-    function getWindDirection(deg) {
-      const directions = ['North', 'NE', 'East', 'SE', 'South', 'SW', 'West', 'NW'];
-      return directions[Math.round(deg / 45) % 8];
-    }
+    const apiKey = 'b628f02897fc7f24a3175118197ab994';
+    const city = 'San Jose del Monte';
 
-    function formatTime(timestamp) {
-      const date = new Date(timestamp * 1000);
-      return date.toLocaleTimeString('en-PH', { hour: '2-digit', minute: '2-digit' });
-    }
-
-    fetch("https://api.openweathermap.org/data/2.5/weather?q=Manila,PH&appid=b628f02897fc7f24a3175118197ab994&units=metric")
+    // 🌡️ Current Weather
+    fetch(`https://api.openweathermap.org/data/2.5/weather?q=${city}&appid=${apiKey}&units=metric`)
       .then(response => response.json())
       .then(data => {
-        const weatherHTML = `
-          <h2>🌥️ Weather Update – ${data.name}, ${data.sys.country}</h2>
-          <p><strong>Temperature:</strong> ${data.main.temp} °C</p>
-          <p><strong>Feels Like:</strong> ${data.main.feels_like} °C</p>
-          <p><strong>Humidity:</strong> ${data.main.humidity}%</p>
-          <p><strong>Wind:</strong> ${data.wind.speed} m/s from ${getWindDirection(data.wind.deg)}</p>
-          <p><strong>Cloud Cover:</strong> ${data.clouds.all}% (${data.weather[0].description})</p>
-          <p><strong>Visibility:</strong> ${data.visibility / 1000} km</p>
-          <p><strong>Pressure:</strong> ${data.main.pressure} hPa</p>
-          <p><strong>Sunrise:</strong> ${formatTime(data.sys.sunrise)}</p>
-          <p><strong>Sunset:</strong> ${formatTime(data.sys.sunset)}</p>
+        const weatherDesc = data.weather?.[0]?.description || 'N/A';
+        const currentHTML = `
+          <h2>🌡️ Current Conditions</h2>
+          <p>Temperature: ${data.main.temp} °C (Feels like ${data.main.feels_like} °C)</p>
+          <p>Humidity: ${data.main.humidity}%</p>
+          <p>Wind: ${data.wind.speed} m/s from ${data.wind.deg}°</p>
+          <p>Clouds: ${data.clouds.all}% (${weatherDesc})</p>
+          <p>Visibility: ${data.visibility} meters</p>
+          <p>Pressure: ${data.main.pressure} hPa</p>
+          <p>Sunrise: ${new Date(data.sys.sunrise * 1000).toLocaleTimeString()}</p>
+          <p>Sunset: ${new Date(data.sys.sunset * 1000).toLocaleTimeString()}</p>
         `;
-        document.getElementById("weather").innerHTML = weatherHTML;
+        document.getElementById('current-weather').innerHTML = currentHTML;
+      });
+
+    // 📅 5-Day Forecast (3-hour intervals)
+    fetch(`https://api.openweathermap.org/data/2.5/forecast?q=${city}&appid=${apiKey}&units=metric`)
+      .then(response => response.json())
+      .then(data => {
+        const forecastHTML = data.list.slice(0, 8).map(item => {
+          const dateTime = new Date(item.dt * 1000).toLocaleString();
+          const desc = item.weather?.[0]?.description || 'N/A';
+          const rain = item.rain?.['3h'] || 0;
+          return `<p><strong>${dateTime}</strong>: ${desc}, 🌧️ Rain: ${rain} mm, 🌡️ ${item.main.temp} °C</p>`;
+        }).join('');
+        document.getElementById('forecast').innerHTML = `<h2>📅 Upcoming Forecast</h2>${forecastHTML}`;
       });
   </script>
 </body>
