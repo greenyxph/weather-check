@@ -10,7 +10,7 @@
     .timestamp { font-size: 12px; color: #555; margin-bottom: 10px; }
     .forecast-block { margin-bottom: 12px; }
     .weather-header { display: flex; align-items: center; gap: 10px; margin-bottom: 5px; }
-    .weather-header img.icon { height: 50px; }
+    .weather-header img.icon { height: 80px; width: 80px; }
     .weather-details { display: flex; gap: 15px; flex-wrap: wrap; font-size: 14px; }
   </style>
 </head>
@@ -35,7 +35,7 @@
         .then(res => res.json())
         .then(data => {
           const w = data.weather?.[0] || {};
-          const icon = `https://openweathermap.org/img/wn/${w.icon}@2x.png`;
+          const icon = `https://openweathermap.org/img/wn/${w.icon}@4x.png`; // Larger icon
           const currentHTML = `
             <div class="forecast-block">
               <div class="weather-header">
@@ -60,7 +60,7 @@
           const forecastHTML = data.list.slice(0, 4).map(item => {
             const time = new Date(item.dt * 1000).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' });
             const w = item.weather?.[0] || {};
-            const icon = `https://openweathermap.org/img/wn/${w.icon}@2x.png`;
+            const icon = `https://openweathermap.org/img/wn/${w.icon}@4x.png`; // Larger icon
             const rain = item.rain?.['3h'] || 0;
             return `
               <div class="forecast-block">
