@@ -4,15 +4,12 @@
   <meta charset="UTF-8">
   <title>GREENYX Weather Dashboard</title>
   <style>
-    body { font-family: Arial, sans-serif; padding: 15px; background: #f0f8ff; font-size: 14px; }
-    h1 { color: #2c3e50; margin-bottom: 5px; }
-    .section { margin-bottom: 20px; }
+    body { font-family: Arial, sans-serif; padding: 20px; background: #f0f8ff; font-size: 14px; }
+    h1 { color: #2c3e50; }
+    .section { margin-bottom: 30px; }
+    p { margin: 5px 0; line-height: 1.4; }
     .timestamp { font-size: 12px; color: #555; margin-bottom: 10px; }
-    .forecast-block { display: flex; justify-content: space-between; align-items: center; margin-bottom: 12px; padding: 6px 0; border-bottom: 1px solid #ccc; }
-    .left { display: flex; align-items: center; gap: 10px; }
-    .left img.icon { height: 50px; }
-    .right { display: flex; gap: 15px; flex-wrap: wrap; text-align: right; }
-    .right span { white-space: nowrap; }
+    img.icon { vertical-align: middle; height: 30px; }
   </style>
 </head>
 <body>
@@ -38,17 +35,17 @@
           const w = data.weather?.[0] || {};
           const icon = `https://openweathermap.org/img/wn/${w.icon}@2x.png`;
           const currentHTML = `
-            <div class="forecast-block">
-              <div class="left">
-                <img class="icon" src="${icon}" alt="${w.description}">
-                <strong>${w.description}</strong>
-              </div>
-              <div class="right">
-                <span>🌡️ Temp: ${data.main.temp} °C</span>
-                <span>💨 Wind: ${data.wind.speed} m/s</span>
-                <span>☁️ Clouds: ${data.clouds.all}%</span>
-              </div>
-            </div>
+            <h2>🌡️ Current Conditions</h2>
+            <p><img class="icon" src="${icon}" alt="${w.description}"> ${w.description}</p>
+            <p>🌡️ Temperature: ${data.main.temp} °C (Feels like ${data.main.feels_like} °C)</p>
+            <p>🌡️ Min/Max: ${data.main.temp_min} °C / ${data.main.temp_max} °C</p>
+            <p>💧 Humidity: ${data.main.humidity}%</p>
+            <p>💨 Wind: ${data.wind.speed} m/s from ${data.wind.deg}°</p>
+            <p>☁️ Clouds: ${data.clouds.all}%</p>
+            <p>🔭 Visibility: ${data.visibility} meters</p>
+            <p>📈 Pressure: ${data.main.pressure} hPa</p>
+            <p>🌅 Sunrise: ${new Date(data.sys.sunrise * 1000).toLocaleTimeString()}</p>
+            <p>🌇 Sunset: ${new Date(data.sys.sunset * 1000).toLocaleTimeString()}</p>
           `;
           document.getElementById('current-weather').innerHTML = currentHTML;
         });
@@ -58,22 +55,17 @@
         .then(res => res.json())
         .then(data => {
           const forecastHTML = data.list.slice(0, 4).map(item => {
-            const time = new Date(item.dt * 1000).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' });
+            const time = new Date(item.dt * 1000).toLocaleString();
             const w = item.weather?.[0] || {};
             const icon = `https://openweathermap.org/img/wn/${w.icon}@2x.png`;
             const rain = item.rain?.['3h'] || 0;
             return `
-              <div class="forecast-block">
-                <div class="left">
-                  <img class="icon" src="${icon}" alt="${w.description}">
-                  <strong>${time} – ${w.description}</strong>
-                </div>
-                <div class="right">
-                  <span>🌡️ Temp: ${item.main.temp} °C</span>
-                  <span>🌧️ Rain: ${rain} mm</span>
-                  <span>💨 Wind: ${item.wind.speed} m/s</span>
-                </div>
-              </div>
+              <p><strong>${time}</strong></p>
+              <p><img class="icon" src="${icon}" alt="${w.description}"> ${w.description}</p>
+              <p>🌡️ Temp: ${item.main.temp} °C</p>
+              <p>🌧️ Rain: ${rain} mm</p>
+              <p>💨 Wind: ${item.wind.speed} m/s</p>
+              <hr>
             `;
           }).join('');
           document.getElementById('forecast').innerHTML = `<h2>📅 Upcoming Forecast</h2>${forecastHTML}`;
